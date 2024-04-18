@@ -6,10 +6,43 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import BasicUser
 from .serializers import UserRegistrationSerializer
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login
 from rest_framework.permissions import AllowAny
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User  # Импортируем стандартную модель пользователя
+from django.urls import reverse
 
+
+# Добавьте эту функцию в ваш views.py
+def login_page(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            # Проверяем, является ли пользователь администратором
+            if user.is_superuser:
+                # Перенаправляем администратора в админ-панель
+                return redirect('/admin/')
+            else:
+                # Перенаправляем обычного пользователя на главную страницу
+                return redirect('main_page')
+        else:
+            # Возвращаем ошибку авторизации
+            return render(request, 'login_page.html', {'error': 'Неправильный username или пароль'})
+    return render(request, 'login_page.html')
+
+def random_topic(request):
+    # Логика для выбора случайной темы
+    # Например, перенаправление на случайную тему
+    return redirect('/some-random-topic-url/')
+
+# Добавьте эту функцию в ваш views.py
+def main_page(request):
+    # Передаем информацию о пользователе в контекст шаблона
+    context = {'user': request.user}
+    return render(request, 'main_page.html', context)
 
 def register_page(request):
     return render(request, 'register_page.html')
@@ -17,6 +50,7 @@ def register_page(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_user(request: HttpRequest):
+    print(request.data)  # Добавьте эту строку для логирования входящих данных
     user_serializer = UserRegistrationSerializer(data=request.data)
     if user_serializer.is_valid():
         # Проверка значения role
@@ -43,13 +77,11 @@ def register_user(request: HttpRequest):
             user.save()
 
             refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
+            request.session['access_token'] = str(refresh.access_token)
+            request.session['refresh_token'] = str(refresh)
 
-            return Response({
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-            }, status=status.HTTP_201_CREATED)
+            # Instead of redirecting, return a JSON response
+            return Response({'success': 'User registered successfully'}, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     else:
@@ -58,9 +90,9 @@ def register_user(request: HttpRequest):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_user(request):
-    email = request.data.get('email')
+    username = request.data.get('username')
     password = request.data.get('password')
-    user = authenticate(username=email, password=password)
+    user = authenticate(username=username, password=password)
     if user is not None:
         refresh = RefreshToken.for_user(user)
         return Response({
