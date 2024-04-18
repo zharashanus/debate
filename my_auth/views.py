@@ -10,9 +10,9 @@ from django.contrib.auth import authenticate
 from rest_framework.permissions import AllowAny
 from django.shortcuts import render
 
-# Добавьте эту функцию
-def index(request):
-    return render(request, 'index.html')
+
+def register_page(request):
+    return render(request, 'register_page.html')
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
