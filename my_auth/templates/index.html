@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="{% static 'css/main_register.css' %}">
+</head>
+<body>
+    <h2 class="text">РЕГИСТРАЦИЯ УЧАСТНИКА</h2>
+    <img id='prs1'src="{% static 'img/prs1.jpg' %}">
+    <form id="registrationForm">
+        <label for="name">Имя:</label><br>
+        <input type="text" id="name" name="name"><br>
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email"><br>
+        <label for="password">Пароль:</label><br>
+        <input type="password" id="password" name="password"><br>
+        <label for="role">Роль:</label><br>
+        <select id="role" name="role">
+            <option value="Линкольн">Линкольн</option>
+            <option value="Дуглас">Дуглас</option>
+        </select><br><br>
+        <input type="button" value="Зарегистрироваться" onclick="registerUser()">
+    </form> 
+
+    <script>
+        function registerUser() {
+            var formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                role: document.getElementById('role').value
+            };
+    
+            // Проверка почты
+            var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(formData.email)) {
+                alert("Введите корректный адрес электронной почты.");
+                return;
+            }
+    
+            // Проверка роли
+            if (formData.role !== "Линкольн" && formData.role !== "Дуглас" && formData.role !== "Lincoln" && formData.role !== "Duoglas") {
+                alert("Роль должна быть либо 'Линкольн', либо 'Дуглас'.");
+                return;
+            }
+    
+            fetch('http://localhost:8000/api/register/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    // Проверяем, содержит ли ответ сообщение об ошибке о занятой почте или никнейме
+                    alert(data.error); // Отображаем сообщение об ошибке
+                } else {
+                    console.log('Success:', data);
+                    alert("Регистрация прошла успешно!");
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert("Ошибка регистрации.");
+            });
+        }
+    </script>
+</body>
+</html>
