@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'my_auth',
+    'debate',
+    'private_page',
     'rest_framework_simplejwt',  # Предполагается, что ваше приложение называется 'auth'
 ]
 

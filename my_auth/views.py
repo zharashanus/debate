@@ -11,6 +11,8 @@ from rest_framework.permissions import AllowAny
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User  # Импортируем стандартную модель пользователя
 from django.urls import reverse
+from django.http import JsonResponse
+import random
 
 
 # Добавьте эту функцию в ваш views.py
@@ -32,11 +34,6 @@ def login_page(request):
             # Возвращаем ошибку авторизации
             return render(request, 'login_page.html', {'error': 'Неправильный username или пароль'})
     return render(request, 'login_page.html')
-
-def random_topic(request):
-    # Логика для выбора случайной темы
-    # Например, перенаправление на случайную тему
-    return redirect('/some-random-topic-url/')
 
 # Добавьте эту функцию в ваш views.py
 def main_page(request):
